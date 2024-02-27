@@ -312,11 +312,20 @@ class TorchBenchModel(BenchmarkModel):
 
     if self.benchmark_experiment.batch_size is not None:
       batch_size = self.benchmark_experiment.batch_size
-    elif self.is_training() and self.model_name in self.batch_size["training"]:
-      batch_size = self.batch_size["training"][self.model_name]
-    elif self.is_inference(
-    ) and self.model_name in self.batch_size["inference"]:
-      batch_size = self.batch_size["inference"][self.model_name]
+    elif self.is_training():
+      if self.model_name in self.batch_size["training"]:
+        batch_size = self.batch_size["training"][self.model_name]
+      else:
+        batch_size = getattr(self.benchmark_cls(), "DEFAULT_TRAIN_BSIZE", None)
+    else:
+      assert self.is_inference()
+      if self.model_name in self.batch_size["inference"]:
+        batch_size = self.batch_size["inference"][self.model_name]
+      else:
+        batch_size = getattr(self.benchmark_cls(), "DEFAULT_EVAL_BSIZE", None)
+    
+    if not batch_size:
+      raise RuntimeError("Model {self.model_name} batch_size is not specified.")
 
     # workaround "RuntimeError: not allowed to set torch.backends.cudnn flags"
     # torch.backends.__allow_nonbracketed_mutation_flag = True

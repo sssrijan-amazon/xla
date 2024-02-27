@@ -305,7 +305,7 @@ class TorchBenchModel(BenchmarkModel):
   def load_benchmark(self):
     cant_change_batch_size = (
         not getattr(self.benchmark_cls(), "ALLOW_CUSTOMIZE_BSIZE", True) or
-        model_name in config_data()["dont_change_batch_size"])
+        self.model_name in config_data()["dont_change_batch_size"])
 
     if cant_change_batch_size:
       self.benchmark_experiment.batch_size = None

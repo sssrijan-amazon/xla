@@ -4,7 +4,6 @@ import contextlib
 import importlib
 import logging
 import os
-from os.path import abspath, exists
 import sys
 import torch
 import torch.amp

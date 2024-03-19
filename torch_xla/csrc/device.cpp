@@ -29,6 +29,8 @@ std::string DeviceType::XlaDeviceTypeToString(XlaDeviceType hw_type) {
       return "NEURON";
     case XlaDeviceType::SPMD:
       return "SPMD";
+    case XlaDeviceType::AOT:
+      return "AOT";
     default:
       XLA_ERROR() << "Invalid device type";
   }
@@ -45,6 +47,8 @@ XlaDeviceType DeviceType::StringToXlaDeviceType(const std::string& type_name) {
     return XlaDeviceType::CUDA;
   } else if (type_name == "NEURON") {
     return XlaDeviceType::NEURON;
+  } else if (type_name == "AOT") {
+    return XlaDeviceType::AOT;
   }
 
   return XlaDeviceType::PLUGIN;

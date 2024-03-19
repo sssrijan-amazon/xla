@@ -303,7 +303,13 @@ c10::optional<torch::lazy::BackendDevice> GetXlaDevice(
   if (!device) {
     return c10::nullopt;
   }
-  return GetXlaDevice(*device);
+  // return GetXlaDevice(*device);
+  // PIZ: hack for device
+  auto fakeBackendDevice = torch::lazy::BackendDevice(
+    std::make_shared<torch::lazy::BackendDeviceType>(((int8_t)at::kXLA)),
+    0
+  );
+  return fakeBackendDevice;
 }
 
 std::vector<torch::lazy::BackendDevice> GetBackendDevices() {
@@ -328,11 +334,12 @@ torch::lazy::BackendDevice AtenDeviceToXlaDevice(const c10::Device& device) {
 c10::Device XlaDeviceToAtenDevice(const torch::lazy::BackendDevice& device) {
   // TODO(yeounoh) until we expose SPMD virtual device to the frontend, this
   // will just be `XLA:0`.
-  if (device.type() == (int8_t)XlaDeviceType::SPMD) {
-    return c10::Device(at::kXLA, (size_t)0);
-  }
-  return c10::Device(at::kXLA,
-                     AtenXlaDeviceMapper::Get()->GetDeviceOrdinal(device));
+  return c10::Device(at::kXLA, (size_t)0);
+  // if (device.type() == (int8_t)XlaDeviceType::SPMD) {
+  //   return c10::Device(at::kXLA, (size_t)0);
+  // }
+  // return c10::Device(at::kXLA,
+  //                    AtenXlaDeviceMapper::Get()->GetDeviceOrdinal(device));
 }
 
 std::string ToXlaString(const c10::Device& device) {
@@ -340,10 +347,12 @@ std::string ToXlaString(const c10::Device& device) {
 }
 
 const torch::lazy::BackendDevice* GetDefaultDevice() {
-  static std::string default_device_spec =
-      UseVirtualDevice() ? "SPMD:0"
-                         : runtime::GetComputationClient()->GetDefaultDevice();
+  // static std::string default_device_spec =
+  //     UseVirtualDevice() ? "SPMD:0"
+  //                        : runtime::GetComputationClient()->GetDefaultDevice();
+  std::string default_device_spec = "XLA:0";
   XLA_CHECK(!default_device_spec.empty());
+  std::cout << "default_device_spec: " << default_device_spec << std::endl; 
   static const torch::lazy::BackendDevice default_device =
       ParseDeviceString(default_device_spec);
   return &default_device;
@@ -354,9 +363,12 @@ c10::Device AtenDefaultDevice() {
 }
 
 torch::lazy::BackendDevice GetCurrentDevice() {
+  std::cout << "ddd" << std::endl;
   if (!g_current_device) {
+    std::cout << "ddd2" << std::endl;
     g_current_device = *GetDefaultDevice();
   }
+  std::cout << "ddd3" << std::endl;
   return *g_current_device;
 }
 

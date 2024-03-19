@@ -209,6 +209,10 @@ cc_library(
     "@xla//xla/pjrt/gpu:se_gpu_pjrt_client",
     "@xla//xla/pjrt:tfrt_cpu_pjrt_client",
     "@xla//xla/pjrt:pjrt_c_api_client",
+
+    # piz: add for compile_only_client
+    "@xla//xla/service:hlo_cost_analysis",    
+
   ],
 )
 

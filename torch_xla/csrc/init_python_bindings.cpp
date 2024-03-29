@@ -923,9 +923,10 @@ class PyLoweringContext {
     computation = ConsumeValue(lowering_ctx.BuildXla());
   }
 
-  // Builds a HLO graph given a set of output tensors, and add unused parameters needed in xlacomputation.
+  // Builds a HLO graph given a set of output tensors, and add unused parameters
+  // needed in xlacomputation.
   void BuildForiLoop(std::vector<at::Tensor> tensors,
-             std::vector<at::Tensor> input_arguments = {}) {
+                     std::vector<at::Tensor> input_arguments = {}) {
     if (GetNameString() == "condctx") {
       xla::XlaBuilder* local_builder = lowering_ctx.builder();
       int64_t parameters_number_i = 2;

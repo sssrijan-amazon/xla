@@ -11,6 +11,7 @@ from torch._ops import HigherOrderOperator
 import torch._higher_order_ops.while_loop
 from torch._higher_order_ops.while_loop import while_loop_op
 
+
 def fori_loop(lower, upper, body_fun, one_value, init_val):
 
   device = xm.xla_device()
@@ -22,7 +23,7 @@ def fori_loop(lower, upper, body_fun, one_value, init_val):
     one_value = torch.ones(1, dtype=torch.int32, device=device)
     return (torch.sub(upper, one_value), lower, body_fun(one_value, x))
 
-  def old_cond_fn(one_value, lower, upper, init_val): 
+  def old_cond_fn(one_value, lower, upper, init_val):
     lower_compare = torch.add(lower, one_value)
     return lower_compare[0] <= upper[0]
 
@@ -34,9 +35,11 @@ def fori_loop(lower, upper, body_fun, one_value, init_val):
   res = _xla_while_loop(cond_fn, body_fn, lower, upper, init_val)
   return res
 
+
 @while_loop_op.py_impl(DispatchKey.XLA)
 def while_loop(cond_fn, body_fn, operands):
   return _xla_while_loop(cond_fn, body_fn, operands)
+
 
 def _xla_while_loop(cond_fn, body_fn, *operands):
   kwargs = {}
@@ -75,6 +78,7 @@ def _xla_while_loop(cond_fn, body_fn, *operands):
   computation = w.build(name)
 
   # gain final result with generated while xlacomputation
-  result = torch_xla._XLAC._xla_user_computation('xla::_op_test_while', (operands), computation)
+  result = torch_xla._XLAC._xla_user_computation('xla::_op_test_while',
+                                                 (operands), computation)
 
   return result

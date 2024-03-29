@@ -902,7 +902,29 @@ class PyLoweringContext {
       : lowering_ctx("PyLoweringContext", device) {}
 
   // Builds a HLO graph given a set of output tensors.
-  void Build(std::vector<at::Tensor> tensors,
+  void Build(std::vector<at::Tensor> tensors) {
+    // Get the backing XLA tensors from the output torch tensor handles
+    std::vector<XLATensorPtr> xtensors =
+        GetXlaTensors(tensors, /*want_all=*/true);
+
+    // Get the lazy IR value from the output XLA tensors
+    std::vector<torch::lazy::Value> ir_values;
+    for (auto& xtensor : xtensors) {
+      torch::lazy::Value value = xtensor->GetIrValue();
+      ir_values.push_back(value);
+    }
+
+    // Lower the graph using the output IR values
+    for (auto& ir_value : ir_values) {
+      xla::XlaOp root = lowering_ctx.GetOutputOp(
+          torch::lazy::Output(ir_value.node.get(), ir_value.index));
+      lowering_ctx.AddResult(root);
+    }
+    computation = ConsumeValue(lowering_ctx.BuildXla());
+  }
+
+  // Builds a HLO graph given a set of output tensors, and add unused parameters needed in xlacomputation.
+  void BuildForiLoop(std::vector<at::Tensor> tensors,
              std::vector<at::Tensor> input_arguments = {}) {
     if (GetNameString() == "condctx") {
       xla::XlaBuilder* local_builder = lowering_ctx.builder();
@@ -1076,6 +1098,7 @@ void BuildLoweringContextSubmodule(py::module* m) {
 
   lowering_context_class.def(py::init<>())
       .def("build", &PyLoweringContext::Build)
+      .def("buildforiloop", &PyLoweringContext::BuildForiLoop)
       .def("hlo", &PyLoweringContext::GetHlo)
       .def("hlo_text", &PyLoweringContext::GetHloText)
       .def("hlo_json", &PyLoweringContext::GetHloJsonText)

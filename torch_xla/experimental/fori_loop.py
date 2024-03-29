@@ -58,7 +58,7 @@ def _xla_while_loop(cond_fn, body_fn, *operands):
   cond_result = cond_fn(*operands)
   cond_ctx = torch_xla._XLAC.lowering.LoweringContext()
   cond_ctx.set_name_string("condctx")
-  cond_ctx.build([cond_result], list(operands[2:]))
+  cond_ctx.buildforiloop([cond_result], list(operands[2:]))
   cond_hlo = cond_ctx.hlo()
   cond_computation = xb.computation_from_module_proto("condcomputation",
                                                       cond_hlo)
@@ -67,7 +67,7 @@ def _xla_while_loop(cond_fn, body_fn, *operands):
   body_result = body_fn(*operands)
   body_ctx = torch_xla._XLAC.lowering.LoweringContext()
   body_ctx.set_name_string("bodyctx")
-  body_ctx.build(list(body_result), [])
+  body_ctx.buildforiloop(list(body_result), [])
   body_hlo = body_ctx.hlo()
   body_computation = xb.computation_from_module_proto("bodycomputation",
                                                       body_hlo)
@@ -79,7 +79,7 @@ def _xla_while_loop(cond_fn, body_fn, *operands):
       condition_computation=cond_computation,
       body_computation=body_computation)
   name = 'fori_loop_ed_torch_func'
-  computation = w.build(name)
+  computation = w.buildforiloop(name)
 
   # gain final result with generated while xlacomputation
   result = torch_xla._XLAC._xla_user_computation('xla::_op_test_while',

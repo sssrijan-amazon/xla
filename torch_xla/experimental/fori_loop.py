@@ -38,11 +38,12 @@ def fori_loop(lower, upper, body_fun, one_value, init_val):
 
 @while_loop_op.py_impl(DispatchKey.XLA)
 def while_loop(cond_fn, body_fn, operands):
+  print("operands: ", operands)
   return _xla_while_loop(cond_fn, body_fn, operands)
 
 
 def _xla_while_loop(cond_fn, body_fn, *operands):
-  print("operands: ", operands)
+  # print("operands: ", operands)
   kwargs = {}
   if type(operands) is tuple:
     shapes = xb.tensor_shape(operands)

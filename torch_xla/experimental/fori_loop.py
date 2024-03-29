@@ -42,6 +42,7 @@ def while_loop(cond_fn, body_fn, operands):
 
 
 def _xla_while_loop(cond_fn, body_fn, *operands):
+  print("operands: ", operands)
   kwargs = {}
   if type(operands) is tuple:
     shapes = xb.tensor_shape(operands)
